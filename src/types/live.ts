@@ -1,53 +1,86 @@
+import { BaseEntity, BaseIndex } from '.'
+
+//
+// Ableton Live Index Types
+//
+
+export interface LiveIndex extends BaseIndex {
+  owner: string
+  liveVersion: string
+}
+
 //
 // Ableton Live Types
 //
 
 // Base interface for all Live entities
-interface LiveEntity {
-  id: string
-  name: string
-  path: string
-  // type: string
-}
+export interface LiveEntity extends BaseEntity {}
 
-// Live files, directories, etc, stored within `Ableton` directory
-interface LiveObject extends LiveEntity {
+// Live files, directories, etc., stored within `Ableton` directory
+interface LiveData extends LiveEntity {
   createdAt: Date
   modifiedAt: Date
   path: string
 }
 
-export interface LiveProject extends LiveObject {
+// TODO: Add more & validate
+export enum LiveFileExtension {
+  Set = '.als',
+  Clip = '.alc',
+  Device = '.adg',
+  Analysis = '.asd',
+  Sample = '.wav'
+}
+
+interface LiveFile extends LiveData {
+  type: LiveSet | LiveSample | LiveClip
+  extension: LiveFileExtension
+  data: any
+}
+
+interface LiveFolder extends LiveData {
+  files?: LiveFile[]
+}
+
+export interface LiveProject extends LiveFolder {
   description?: string
   tags?: string[]
   // sets: LiveSet[]
 }
 
-export interface LiveSet extends LiveObject {
-  createdAt: Date
-  modifiedAt: Date
+export interface LiveSet extends LiveData {
+  desription?: string
+  tags?: string[]
 }
 
 export interface LiveTemplate extends LiveSet {
-  description: string
+  version: string
 }
 
 export interface LiveTrack extends LiveEntity {
   type: 'Group' | 'Audio' | 'Midi'
-  devices: LiveDevice[]
-  clips: LiveClip[]
-  samples: LiveSample[]
+  clips?: LiveClip[]
+  devices?: LiveDevice[]
+  samples?: LiveSample[]
+  tags?: string[]
 }
 
-export interface LiveSample extends LiveObject {
+export interface LiveSample extends LiveData {
   type: 'Processed' | 'Recorded'
   sampleRate: number
   bitDepth: number
   duration: number
+  tags?: string[]
 }
 
-export interface LiveClip extends LiveObject {
+export interface LiveClip extends LiveData {
+  type: 'Audio' | 'Midi'
+}
 
+export interface LiveGroove extends LiveEntity {}
+
+export interface LivePreset extends LiveEntity {
+  type: 'Instrument' | 'AudioEffect' | 'MidiEffect'
 }
 
 export interface LiveDevice extends LiveEntity {
@@ -70,11 +103,3 @@ export interface LiveBreakpoint {
   time: number
   value: number
 }
-
-export interface LiveGroove extends LiveEntity {}
-
-export interface LivePreset extends LiveEntity {
-  type: 'Instrument' | 'AudioEffect' | 'MidiEffect'
-}
-
-export interface LiveScene extends LiveEntity {}

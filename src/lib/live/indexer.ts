@@ -1,11 +1,13 @@
 import path from 'path'
 import { readdir, stat } from 'fs/promises'
-import { LiveProject } from '@/types/live'
+import { BaseIndexer } from '@/types'
+import {
+  LiveFileExtension,
+  LiveIndex,
+  LiveProject
+} from '@/types/live'
 
-// Constants
-const LIVE_SET_FILE_EXTENSION = '.als'
-
-// User Paths
+// User directory paths
 const LIVE_ROOT_PATH = process.env.LIVE_ROOT_PATH ?? '~/Music/Ableton'
 const LIVE_PROJECTS_ROOT_PATH = process.env.LIVE_PROJECTS_ROOT_PATH ?? '~/Music/Ableton/Projects'
 const LIVE_USER_LIBRARY_ROOT_PATH = process.env.LIVE_USER_LIBRARY_ROOT_PATH ?? '~/Music/Ableton/User Library'
@@ -13,10 +15,14 @@ const LIVE_USER_LIBRARY_ROOT_PATH = process.env.LIVE_USER_LIBRARY_ROOT_PATH ?? '
 /**
  * Ableton Live Indexer
  */
-class LiveIndexer {
+class LiveIndexer implements BaseIndexer {
+  LIVE_SET_FILE_EXT = LiveFileExtension.Set
+  LIVE_CLIP_FILE_EXT = LiveFileExtension.Clip
+
   liveRootPath: string
   projectsRootPath: string
   userLibraryPath: string
+  jsonPath: string = path.resolve(`./json/index.json`)
 
   constructor(
     liveRootPath: string,
@@ -27,9 +33,44 @@ class LiveIndexer {
     this.liveRootPath = path.resolve(liveRootPath)
     this.projectsRootPath = path.normalize(projectsRootPath)
     this.userLibraryPath = path.normalize(userLibraryPath)
+    // this.jsonPath = path.join(this.liveRootPath, 'index.json')
   }
 
-  async buildIndex() {}
+  async initializeIndex(): Promise<LiveIndex> {
+    console.log(`[LiveIndexer initializeIndex] Starting...`)
+    const index = await this.buildIndex()
+    // await this.saveIndex(index)
+    return index
+  }
+
+  async buildIndex(): Promise<LiveIndex> {
+    console.log(`[LiveIndexer buildIndex] Building index...`)
+    const projects = await this.getProjects()
+
+    // TEMP: Random 10 digit number
+    const id = Math.round(Math.random() * 10000000000).toString()
+
+    const timestamp = new Date()
+
+    return {
+      id,
+      owner: 'KB', // TEMP
+      name: 'live', // TEMP
+      liveVersion: '11.2.11', // TEMP
+      version: '0.0.1', // TEMP
+      createdAt: timestamp,
+      modifiedAt: timestamp,
+      data: {
+        projects
+      }
+    }
+  }
+
+  async saveIndex(index: LiveIndex) {
+    // TODO: Update DB
+  }
+
+  writeJson(path: string = this.jsonPath, output: LiveProject[]) {}
 
   /**
    * Recursively searches through `this.projectsRootPath`
@@ -52,7 +93,7 @@ class LiveIndexer {
           const subDirEntries = await readdir(entryPath)
           const nameIncludesProject = entry.includes('Project')
           const hasLiveSet = subDirEntries.some((subEntry) => {
-            return subEntry.endsWith(LIVE_SET_FILE_EXTENSION)
+            return subEntry.endsWith(this.LIVE_SET_FILE_EXT)
           })
 
           if (hasLiveSet && nameIncludesProject) {
