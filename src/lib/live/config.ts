@@ -1,3 +1,4 @@
-export const LIVE_ROOT_DIR = '~/Music/Ableton'
-export const LIVE_PROJECTS_ROOT_DIR = `${LIVE_ROOT_DIR}/Projects`
-export const LIVE_USER_LIBRARY_ROOT_DIR = `${LIVE_ROOT_DIR}/User Library`
+// TODO: Replace with env vars
+export const LIVE_ROOT_PATH = process.env.LIVE_ROOT_PATH
+export const LIVE_PROJECTS_ROOT_PATH = process.env.LIVE_PROJECTS_ROOT_PATH
+export const LIVE_USER_LIBRARY_ROOT_PATH = process.env.LIVE_USER_LIBRARY_ROOT_PATH

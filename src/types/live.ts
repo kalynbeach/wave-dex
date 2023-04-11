@@ -18,9 +18,9 @@ interface LiveObject extends LiveEntity {
 }
 
 export interface LiveProject extends LiveObject {
-  createdAt: Date
-  modifiedAt: Date
-  sets: LiveSet[]
+  description?: string
+  tags?: string[]
+  // sets: LiveSet[]
 }
 
 export interface LiveSet extends LiveObject {
