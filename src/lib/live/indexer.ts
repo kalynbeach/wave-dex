@@ -36,13 +36,22 @@ class LiveIndexer implements BaseIndexer {
     // this.jsonPath = path.join(this.liveRootPath, 'index.json')
   }
 
+  /**
+   * Initialize the `LiveIndex`.
+   * @returns Promise<LiveIndex>
+   */
   async initializeIndex(): Promise<LiveIndex> {
     console.log(`[LiveIndexer initializeIndex] Starting...`)
+    // TODO: Check for existing index, get it if it exists
     const index = await this.buildIndex()
     // await this.saveIndex(index)
     return index
   }
 
+  /**
+   * Build the `LiveIndex`.
+   * @returns Promise<LiveIndex>
+   */
   async buildIndex(): Promise<LiveIndex> {
     console.log(`[LiveIndexer buildIndex] Building index...`)
     const projects = await this.getProjects()
@@ -66,8 +75,12 @@ class LiveIndexer implements BaseIndexer {
     }
   }
 
+  /**
+   * Save the given `LiveIndex` to the database.
+   * @param index `LiveIndex` to save
+   */
   async saveIndex(index: LiveIndex) {
-    // TODO: Update DB
+    // TODO: Update database
   }
 
   writeJson(path: string = this.jsonPath, output: LiveProject[]) {}
@@ -118,7 +131,14 @@ class LiveIndexer implements BaseIndexer {
     return projects
   }
 
-  async getUserLibrary() {}
+  /**
+   * Recursively searches through the Live User Library at 
+   * `this.userLibraryPath` for `LiveFile` objects and
+   * returns them
+   */
+  async getUserLibrary() {
+    // TODO: Implement
+  }
 }
 
 const indexer = new LiveIndexer(
