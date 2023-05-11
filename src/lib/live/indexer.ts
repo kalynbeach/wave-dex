@@ -31,8 +31,8 @@ class LiveIndexer implements BaseIndexer {
   ) {
     console.log('[LiveIndexer] Initializing...')
     this.liveRootPath = path.resolve(liveRootPath)
-    this.projectsRootPath = path.normalize(projectsRootPath)
-    this.userLibraryPath = path.normalize(userLibraryPath)
+    this.projectsRootPath = path.resolve(projectsRootPath)
+    this.userLibraryPath = path.resolve(userLibraryPath)
     // this.jsonPath = path.join(this.liveRootPath, 'index.json')
   }
 
