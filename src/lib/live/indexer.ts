@@ -70,7 +70,7 @@ class LiveIndexer implements BaseIndexer {
       createdAt: timestamp,
       modifiedAt: timestamp,
       data: {
-        projects
+        projects: projects
       }
     }
   }
@@ -141,10 +141,10 @@ class LiveIndexer implements BaseIndexer {
   }
 }
 
-const indexer = new LiveIndexer(
+export const liveIndexer = new LiveIndexer(
   LIVE_ROOT_PATH,
   LIVE_PROJECTS_ROOT_PATH,
   LIVE_USER_LIBRARY_ROOT_PATH
 )
 
-export default indexer
+export default LiveIndexer

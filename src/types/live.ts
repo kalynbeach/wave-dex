@@ -7,6 +7,9 @@ import { BaseEntity, BaseIndex } from '.'
 export interface LiveIndex extends BaseIndex {
   owner: string
   liveVersion: string
+  data: {
+    projects: LiveProject[]
+  }
 }
 
 //
