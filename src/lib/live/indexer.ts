@@ -36,6 +36,20 @@ class LiveIndexer implements BaseIndexer {
     // this.jsonPath = path.join(this.liveRootPath, 'index.json')
   }
 
+  get paths() {
+    return {
+      liveRoot: this.liveRootPath,
+      projectsRoot: this.projectsRootPath,
+      userLibrary: this.userLibraryPath
+    }
+  }
+
+  updatePaths(values: { root: string, projects: string, userLibrary: string }) {
+    this.liveRootPath = path.resolve(values.root)
+    this.projectsRootPath = path.resolve(values.projects)
+    this.userLibraryPath = path.resolve(values.userLibrary)
+  }
+
   /**
    * Initialize the `LiveIndex`.
    * @returns Promise<LiveIndex>
