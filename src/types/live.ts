@@ -1,10 +1,10 @@
-import { BaseEntity, BaseIndex } from '.'
+import { IndexEntity, Index } from '.'
 
 //
 // Ableton Live Index Types
 //
 
-export interface LiveIndex extends BaseIndex {
+export interface LiveIndex extends Index {
   owner: string
   liveVersion: string
   data: {
@@ -17,7 +17,7 @@ export interface LiveIndex extends BaseIndex {
 //
 
 // Base interface for all Live entities
-export interface LiveEntity extends BaseEntity {}
+export interface LiveEntity extends IndexEntity {}
 
 // Live files, directories, etc., stored within `Ableton` directory
 interface LiveData extends LiveEntity {

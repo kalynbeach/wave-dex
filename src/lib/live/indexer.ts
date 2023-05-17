@@ -1,6 +1,6 @@
 import path from 'path'
 import { readdir, stat } from 'fs/promises'
-import { BaseIndexer } from '@/types'
+import { Indexer } from '@/types'
 import {
   LiveFileExtension,
   LiveIndex,
@@ -15,7 +15,7 @@ const LIVE_USER_LIBRARY_ROOT_PATH = process.env.LIVE_USER_LIBRARY_ROOT_PATH ?? '
 /**
  * Ableton Live Indexer
  */
-class LiveIndexer implements BaseIndexer {
+class LiveIndexer implements Indexer {
   LIVE_SET_FILE_EXT = LiveFileExtension.Set
   LIVE_CLIP_FILE_EXT = LiveFileExtension.Clip
 
