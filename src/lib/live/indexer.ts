@@ -1,11 +1,7 @@
 import path from 'path'
 import { readdir, stat } from 'fs/promises'
-import { Indexer } from '@/types'
-import {
-  LiveFileExtension,
-  LiveIndex,
-  LiveProject
-} from '@/types/live'
+import { Indexer, IndexEntity, IndexingStrategy } from '@/types'
+import { LiveFileExtension, LiveIndex, LiveProject } from '@/types/live'
 
 // User directory paths
 const LIVE_ROOT_PATH = process.env.LIVE_ROOT_PATH ?? '~/Music/Ableton'
@@ -16,13 +12,19 @@ const LIVE_USER_LIBRARY_ROOT_PATH = process.env.LIVE_USER_LIBRARY_ROOT_PATH ?? '
  * Ableton Live Indexer
  */
 class LiveIndexer implements Indexer {
-  LIVE_SET_FILE_EXT = LiveFileExtension.Set
-  LIVE_CLIP_FILE_EXT = LiveFileExtension.Clip
 
-  liveRootPath: string
-  projectsRootPath: string
-  userLibraryPath: string
-  jsonPath: string = path.resolve(`./json/index.json`)
+  readonly FILE_EXTENSIONS: {
+    LIVE_SET: string
+    LIVE_CLIP: string
+  }
+
+  config: {
+    paths: { [key: string]: string }
+  }
+
+  strategies: IndexingStrategy[] = []
+
+  index: LiveIndex | null = null
 
   constructor(
     liveRootPath: string,
@@ -30,43 +32,39 @@ class LiveIndexer implements Indexer {
     userLibraryPath: string
   ) {
     console.log('[LiveIndexer] Initializing...')
-    this.liveRootPath = path.resolve(liveRootPath)
-    this.projectsRootPath = path.resolve(projectsRootPath)
-    this.userLibraryPath = path.resolve(userLibraryPath)
-    // this.jsonPath = path.join(this.liveRootPath, 'index.json')
+    this.FILE_EXTENSIONS = {
+      LIVE_SET: LiveFileExtension.Set,
+      LIVE_CLIP: LiveFileExtension.Clip
+    }
+    this.config = {
+      paths: {
+        root: path.resolve(liveRootPath),
+        projects: path.resolve(projectsRootPath),
+        userLibrary: path.resolve(userLibraryPath),
+        json: path.join(liveRootPath, 'index.json')
+      }
+    }
   }
 
   get paths() {
     return {
-      liveRoot: this.liveRootPath,
-      projectsRoot: this.projectsRootPath,
-      userLibrary: this.userLibraryPath
+      liveRoot: this.config.paths.root,
+      projectsRoot: this.config.paths.projects,
+      userLibrary: this.config.paths.userLibrary
     }
   }
 
   updatePaths(values: { root: string, projects: string, userLibrary: string }) {
-    this.liveRootPath = path.resolve(values.root)
-    this.projectsRootPath = path.resolve(values.projects)
-    this.userLibraryPath = path.resolve(values.userLibrary)
-  }
-
-  /**
-   * Initialize the `LiveIndex`.
-   * @returns Promise<LiveIndex>
-   */
-  async initializeIndex(): Promise<LiveIndex> {
-    console.log(`[LiveIndexer initializeIndex] Starting...`)
-    // TODO: Check for existing index, get it if it exists
-    const index = await this.buildIndex()
-    // await this.saveIndex(index)
-    return index
+    this.config.paths.root = path.resolve(values.root)
+    this.config.paths.projects = path.resolve(values.projects)
+    this.config.paths.userLibrary = path.resolve(values.userLibrary)
   }
 
   /**
    * Build the `LiveIndex`.
    * @returns Promise<LiveIndex>
    */
-  async buildIndex(): Promise<LiveIndex> {
+  async buildIndex(): Promise<void> {
     console.log(`[LiveIndexer buildIndex] Building index...`)
     const projects = await this.getProjects()
 
@@ -75,7 +73,7 @@ class LiveIndexer implements Indexer {
 
     const timestamp = new Date()
 
-    return {
+    this.index = {
       id,
       owner: 'KB', // TEMP
       name: 'live', // TEMP
@@ -86,18 +84,25 @@ class LiveIndexer implements Indexer {
       data: {
         projects: projects
       }
-    }
+    } as LiveIndex
+  }
+
+  async getIndexValue(key: string): Promise<IndexEntity[] | undefined> {
+    return undefined
   }
 
   /**
    * Save the given `LiveIndex` to the database.
    * @param index `LiveIndex` to save
    */
-  async saveIndex(index: LiveIndex) {
-    // TODO: Update database
+  async saveIndex<LiveIndex>(index: LiveIndex): Promise<void> {
+    // TODO: Update databases
+    return new Promise((resolve, reject) => {})
   }
 
-  writeJson(path: string = this.jsonPath, output: LiveProject[]) {}
+  saveIndexJson(path: string = this.config.paths.json, output: LiveProject[]): Promise<void> {
+    return new Promise((resolve, reject) => {})
+  }
 
   /**
    * Recursively searches through `this.projectsRootPath`
@@ -120,11 +125,12 @@ class LiveIndexer implements Indexer {
           const subDirEntries = await readdir(entryPath)
           const nameIncludesProject = entry.includes('Project')
           const hasLiveSet = subDirEntries.some((subEntry) => {
-            return subEntry.endsWith(this.LIVE_SET_FILE_EXT)
+            return subEntry.endsWith(this.FILE_EXTENSIONS.LIVE_SET)
           })
 
           if (hasLiveSet && nameIncludesProject) {
             projects.push({
+              fileExtension: this.FILE_EXTENSIONS.LIVE_SET,
               id: `${entryStat.ino}`,
               name: entry,
               createdAt: entryStat.birthtime,
@@ -140,7 +146,7 @@ class LiveIndexer implements Indexer {
       await Promise.all(entryPromises)
     }
 
-    await findProjects(this.projectsRootPath)
+    await findProjects(this.config.paths.projects)
     console.log(`[LiveIndexer getProjects] Done! Projects: ${projects.length}`)
     return projects
   }
