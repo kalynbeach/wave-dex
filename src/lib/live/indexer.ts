@@ -8,6 +8,8 @@ const LIVE_ROOT_PATH = process.env.LIVE_ROOT_PATH ?? '~/Music/Ableton'
 const LIVE_PROJECTS_ROOT_PATH = process.env.LIVE_PROJECTS_ROOT_PATH ?? '~/Music/Ableton/Projects'
 const LIVE_USER_LIBRARY_ROOT_PATH = process.env.LIVE_USER_LIBRARY_ROOT_PATH ?? '~/Music/Ableton/User Library'
 
+let instance: LiveIndexer | null = null
+
 /**
  * Ableton Live Indexer
  */
@@ -16,40 +18,38 @@ class LiveIndexer implements Indexer<LiveProject[]> {
   readonly FILE_EXTENSIONS: {
     LIVE_SET: string
     LIVE_CLIP: string
+  } = {
+    LIVE_SET: LiveFileExtension.Set,
+    LIVE_CLIP: LiveFileExtension.Clip
   }
 
   config: {
     paths: { [key: string]: string }
+  } = {
+    paths: {
+      root: path.resolve(LIVE_ROOT_PATH),
+      projects: path.resolve(LIVE_PROJECTS_ROOT_PATH),
+      userLibrary: path.resolve(LIVE_USER_LIBRARY_ROOT_PATH),
+      json: path.join(LIVE_ROOT_PATH, 'index.json')
+    }
   }
 
   strategies: IndexingStrategy<any>[] = []
 
   index: LiveIndex | null = null
 
-  constructor(
-    liveRootPath: string,
-    projectsRootPath: string,
-    userLibraryPath: string
-  ) {
-    console.log('[LiveIndexer] Initializing...')
-    this.FILE_EXTENSIONS = {
-      LIVE_SET: LiveFileExtension.Set,
-      LIVE_CLIP: LiveFileExtension.Clip
+  constructor() {
+    console.log('[LiveIndexer] Constructing...')
+    if (!instance) {
+      instance = this
     }
-    this.config = {
-      paths: {
-        root: path.resolve(liveRootPath),
-        projects: path.resolve(projectsRootPath),
-        userLibrary: path.resolve(userLibraryPath),
-        json: path.join(liveRootPath, 'index.json')
-      }
-    }
+    return instance
   }
 
   get paths() {
     return {
-      liveRoot: this.config.paths.root,
-      projectsRoot: this.config.paths.projects,
+      root: this.config.paths.root,
+      projects: this.config.paths.projects,
       userLibrary: this.config.paths.userLibrary
     }
   }
@@ -64,7 +64,7 @@ class LiveIndexer implements Indexer<LiveProject[]> {
    * Build the `LiveIndex`.
    * @returns Promise<LiveIndex>
    */
-  async createIndex(): Promise<void> {
+  async createIndex(): Promise<LiveIndex> {
     console.log(`[LiveIndexer createIndex] Creating index...`)
     const projects = await this.getProjects()
 
@@ -85,6 +85,7 @@ class LiveIndexer implements Indexer<LiveProject[]> {
         projects: projects
       }
     } as LiveIndex
+    return this.index
   }
 
   getIndex(): LiveIndex {
@@ -165,10 +166,4 @@ class LiveIndexer implements Indexer<LiveProject[]> {
   }
 }
 
-export const liveIndexer = new LiveIndexer(
-  LIVE_ROOT_PATH,
-  LIVE_PROJECTS_ROOT_PATH,
-  LIVE_USER_LIBRARY_ROOT_PATH
-)
-
-// export default LiveIndexer
+export const liveIndexer = new LiveIndexer()

@@ -39,7 +39,7 @@ export interface Indexer<T extends IndexEntity[]> {
 
   strategies: IndexingStrategy<any>[]
 
-  createIndex: () => Promise<void>
+  createIndex: () => Promise<Index<T>>
   getIndex: () => Index<T>
   getIndexValue: (key: string) => Promise<IndexEntity[] | undefined>
   saveIndex: <T extends IndexEntity[]>(index: Index<T>) => Promise<void>
