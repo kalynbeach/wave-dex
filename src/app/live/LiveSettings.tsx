@@ -1,5 +1,5 @@
 import { liveIndexer } from '@/lib/live/indexer'
-import PathSetting from './PathSetting'
+import PathSetting from 'ui/PathSetting'
 
 export default function LiveSettings() {
   const paths = liveIndexer.paths
@@ -14,9 +14,9 @@ export default function LiveSettings() {
           Paths
         </span>
         {/* - Live root path */}
-        <PathSetting label='Live Root' value={paths.liveRoot} />
+        <PathSetting label='Live Root' value={paths.root} />
         {/* - Projects root path */}
-        <PathSetting label='Projects Root' value={paths.projectsRoot} />
+        <PathSetting label='Projects Root' value={paths.projects} />
         {/* - User Library root path */}
         <PathSetting label='User Library Root' value={paths.userLibrary} />
       </section>

@@ -1,4 +1,4 @@
-import LiveSettings from './LiveSettings'
+import LiveSettings from '../app/live/LiveSettings'
 
 export default function Settings() {
   return (
