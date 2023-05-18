@@ -2,17 +2,19 @@ import { liveIndexer } from '@/lib/live/indexer'
 import { LiveIndex } from '@/types/live'
 import IndexList from 'ui/IndexList'
 
-async function getIndex() {
-  return await liveIndexer.initializeIndex()
+async function initIndex() {
+  await liveIndexer.createIndex()
+  return liveIndexer.getIndex()
 }
 
 async function getProjects(index: LiveIndex) {
-  const projects = index.data.projects
-  return projects
+  return index.data.projects
 }
 
 export default async function Live() {
-  const index = await getIndex()
+  const index = await initIndex()
+  console.log(`[Live] index:`, index)
+
   const projects = await getProjects(index)
   console.log(`[Live] projects:`, projects.length)
 

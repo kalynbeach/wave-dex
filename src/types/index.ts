@@ -9,23 +9,23 @@ export interface IndexEntity {
   }
 }
 
-export interface Index {
+export interface Index<T extends IndexEntity[]> {
   id: string
   name: string
   version: string
   createdAt: Date
   modifiedAt: Date
   data: {
-    [key: string]: IndexEntity[]
+    [key: string]: T
   }
 }
 
-export interface IndexingStrategy {
+export interface IndexingStrategy<T extends IndexEntity> {
   fileExtension: string
-  index: (rootDirectory: PathLike) => Promise<IndexEntity[]>
+  index: (rootDirectory: PathLike) => Promise<T[]>
 }
 
-export interface Indexer {
+export interface Indexer<T extends IndexEntity[]> {
   readonly FILE_EXTENSIONS: {
     [key: string]: string
   }
@@ -35,20 +35,21 @@ export interface Indexer {
     [key: string]: any
   }
 
-  index: Index | null
+  index: Index<T> | null
 
-  strategies: IndexingStrategy[]
+  strategies: IndexingStrategy<any>[]
 
-  buildIndex: () => Promise<void>
+  createIndex: () => Promise<void>
+  getIndex: () => Index<T>
   getIndexValue: (key: string) => Promise<IndexEntity[] | undefined>
-  saveIndex: <T>(index: Index) => Promise<void>
+  saveIndex: <T extends IndexEntity[]>(index: Index<T>) => Promise<void>
   saveIndexJson: (path: string, output: any[]) => Promise<void> // TODO: Replace this any
 }
 
 export interface IndexerDatabase {
-  getIndex: (id: string) => Promise<Index>
+  getIndex: <T extends IndexEntity[]>(id: string) => Promise<Index<T>>
   getIndexValue: (id: string, key: string) => Promise<IndexEntity[]>
-  setIndex: (index: Index) => Promise<void>
+  setIndex: <T extends IndexEntity[]>(index: Index<T>) => Promise<void>
   setIndexValue: (id: string, key: string, value: IndexEntity[]) => Promise<void>
   updateIndexValue: (id: string, key: string, value: IndexEntity[]) => Promise<void>
 }

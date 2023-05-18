@@ -1,6 +1,6 @@
 import path from 'path'
 import { readdir, stat } from 'fs/promises'
-import { Indexer, IndexEntity, IndexingStrategy } from '@/types'
+import type { Indexer, IndexEntity, IndexingStrategy, Index } from '@/types'
 import { LiveFileExtension, LiveIndex, LiveProject } from '@/types/live'
 
 // User directory paths
@@ -11,7 +11,7 @@ const LIVE_USER_LIBRARY_ROOT_PATH = process.env.LIVE_USER_LIBRARY_ROOT_PATH ?? '
 /**
  * Ableton Live Indexer
  */
-class LiveIndexer implements Indexer {
+class LiveIndexer implements Indexer<LiveProject[]> {
 
   readonly FILE_EXTENSIONS: {
     LIVE_SET: string
@@ -22,7 +22,7 @@ class LiveIndexer implements Indexer {
     paths: { [key: string]: string }
   }
 
-  strategies: IndexingStrategy[] = []
+  strategies: IndexingStrategy<any>[] = []
 
   index: LiveIndex | null = null
 
@@ -64,8 +64,8 @@ class LiveIndexer implements Indexer {
    * Build the `LiveIndex`.
    * @returns Promise<LiveIndex>
    */
-  async buildIndex(): Promise<void> {
-    console.log(`[LiveIndexer buildIndex] Building index...`)
+  async createIndex(): Promise<void> {
+    console.log(`[LiveIndexer createIndex] Creating index...`)
     const projects = await this.getProjects()
 
     // TEMP: Random 10 digit number
@@ -85,6 +85,10 @@ class LiveIndexer implements Indexer {
         projects: projects
       }
     } as LiveIndex
+  }
+
+  getIndex(): LiveIndex {
+    return this.index as LiveIndex
   }
 
   async getIndexValue(key: string): Promise<IndexEntity[] | undefined> {
@@ -167,4 +171,4 @@ export const liveIndexer = new LiveIndexer(
   LIVE_USER_LIBRARY_ROOT_PATH
 )
 
-export default LiveIndexer
+// export default LiveIndexer

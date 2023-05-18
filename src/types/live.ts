@@ -1,10 +1,10 @@
-import { IndexEntity, Index } from '.'
+import type { IndexEntity, Index } from '.'
 
 //
 // Ableton Live Index Types
 //
 
-export interface LiveIndex extends Index {
+export interface LiveIndex extends Index<LiveProject[]> {
   owner: string
   liveVersion: string
   data: {
