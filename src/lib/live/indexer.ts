@@ -1,12 +1,57 @@
 import path from 'path'
 import { readdir, stat } from 'fs/promises'
-import type { Indexer, IndexEntity, IndexingStrategy, Index } from '@/types'
+import type { Indexer, IndexEntity, IndexingStrategy, IndexerStrategies } from '@/types'
 import { LiveFileExtension, LiveIndex, LiveProject } from '@/types/live'
 
 // User directory paths
 const LIVE_ROOT_PATH = process.env.LIVE_ROOT_PATH ?? '~/Music/Ableton'
 const LIVE_PROJECTS_ROOT_PATH = process.env.LIVE_PROJECTS_ROOT_PATH ?? '~/Music/Ableton/Projects'
 const LIVE_USER_LIBRARY_ROOT_PATH = process.env.LIVE_USER_LIBRARY_ROOT_PATH ?? '~/Music/Ableton/User Library'
+
+
+class LiveProjectIndexingStrategy implements IndexingStrategy<LiveProject> {
+
+  fileExtension: string = LiveFileExtension.Set
+
+  constructor() {
+    console.log('[LiveProjectIndexingStrategy] Constructing...')
+  }
+
+  async index(rootDirectory: string): Promise<LiveProject[]> {
+    console.log(`[LiveProjectIndexingStrategy index] Starting...`)
+    const projects: LiveProject[] = []
+    // Recursively search for Projects within the root directory
+    const findProjects = async (dir: string) => {
+      const entries = await readdir(dir)
+      const entryPromises = entries.map(async (entry) => {
+        const entryPath = path.join(dir, entry)
+        const entryStat = await stat(entryPath)
+        if (entryStat.isDirectory()) {
+          const subDirEntries = await readdir(entryPath)
+          const nameIncludesProject = entry.includes('Project')
+          const hasLiveSet = subDirEntries.some((subEntry) => {
+            return subEntry.endsWith(this.fileExtension)
+          })
+          if (hasLiveSet && nameIncludesProject) {
+            projects.push({
+              fileExtension: this.fileExtension,
+              id: `${entryStat.ino}`,
+              name: entry,
+              createdAt: entryStat.birthtime,
+              modifiedAt: entryStat.mtime,
+              path: entryPath
+            })
+          }
+          return findProjects(entryPath)
+        }
+      })
+      await Promise.all(entryPromises)
+    }
+    await findProjects(rootDirectory)
+    console.log(`[LiveProjectIndexingStrategy index] Done! Projects: ${projects.length}`)
+    return projects
+  }
+}
 
 let instance: LiveIndexer | null = null
 
@@ -34,7 +79,9 @@ class LiveIndexer implements Indexer<LiveProject[]> {
     }
   }
 
-  strategies: IndexingStrategy<any>[] = []
+  strategies: IndexerStrategies<IndexEntity> = {
+    projects: new LiveProjectIndexingStrategy()
+  }
 
   index: LiveIndex | null = null
 
@@ -66,7 +113,9 @@ class LiveIndexer implements Indexer<LiveProject[]> {
    */
   async createIndex(): Promise<LiveIndex> {
     console.log(`[LiveIndexer createIndex] Creating index...`)
-    const projects = await this.getProjects()
+    // const projects = await this.getProjects()
+
+    const projects = await this.strategies.projects.index(this.config.paths.projects) as LiveProject[]
 
     // TEMP: Random 10 digit number
     const id = Math.round(Math.random() * 10000000000).toString()
@@ -115,46 +164,46 @@ class LiveIndexer implements Indexer<LiveProject[]> {
    * array of `LiveProject` objects.
    * @returns Promise<LiveProject[]>
    */
-  async getProjects(): Promise<LiveProject[]> {
-    console.log(`[LiveIndexer getProjects] Starting...`)
-    const projects: LiveProject[] = []
+  // async getProjects(): Promise<LiveProject[]> {
+  //   console.log(`[LiveIndexer getProjects] Starting...`)
+  //   const projects: LiveProject[] = []
 
-    // Recursively search for Projects within the root directory
-    const findProjects = async (dir: string) => {
-      const entries = await readdir(dir)
-      const entryPromises = entries.map(async (entry) => {
-        const entryPath = path.join(dir, entry)
-        const entryStat = await stat(entryPath)
+  //   // Recursively search for Projects within the root directory
+  //   const findProjects = async (dir: string) => {
+  //     const entries = await readdir(dir)
+  //     const entryPromises = entries.map(async (entry) => {
+  //       const entryPath = path.join(dir, entry)
+  //       const entryStat = await stat(entryPath)
 
-        if (entryStat.isDirectory()) {
-          const subDirEntries = await readdir(entryPath)
-          const nameIncludesProject = entry.includes('Project')
-          const hasLiveSet = subDirEntries.some((subEntry) => {
-            return subEntry.endsWith(this.FILE_EXTENSIONS.LIVE_SET)
-          })
+  //       if (entryStat.isDirectory()) {
+  //         const subDirEntries = await readdir(entryPath)
+  //         const nameIncludesProject = entry.includes('Project')
+  //         const hasLiveSet = subDirEntries.some((subEntry) => {
+  //           return subEntry.endsWith(this.FILE_EXTENSIONS.LIVE_SET)
+  //         })
 
-          if (hasLiveSet && nameIncludesProject) {
-            projects.push({
-              fileExtension: this.FILE_EXTENSIONS.LIVE_SET,
-              id: `${entryStat.ino}`,
-              name: entry,
-              createdAt: entryStat.birthtime,
-              modifiedAt: entryStat.mtime,
-              path: entryPath
-            })
-          }
+  //         if (hasLiveSet && nameIncludesProject) {
+  //           projects.push({
+  //             fileExtension: this.FILE_EXTENSIONS.LIVE_SET,
+  //             id: `${entryStat.ino}`,
+  //             name: entry,
+  //             createdAt: entryStat.birthtime,
+  //             modifiedAt: entryStat.mtime,
+  //             path: entryPath
+  //           })
+  //         }
 
-          return findProjects(entryPath)
-        }
-      })
+  //         return findProjects(entryPath)
+  //       }
+  //     })
 
-      await Promise.all(entryPromises)
-    }
+  //     await Promise.all(entryPromises)
+  //   }
 
-    await findProjects(this.config.paths.projects)
-    console.log(`[LiveIndexer getProjects] Done! Projects: ${projects.length}`)
-    return projects
-  }
+  //   await findProjects(this.config.paths.projects)
+  //   console.log(`[LiveIndexer getProjects] Done! Projects: ${projects.length}`)
+  //   return projects
+  // }
 
   /**
    * Recursively searches through the Live User Library at 

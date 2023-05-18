@@ -1,7 +1,7 @@
 import { liveIndexer } from '@/lib/live/indexer'
 import PathSetting from 'ui/PathSetting'
 
-export default function LiveSettings() {  
+export default function LiveSettings() {
   const paths = liveIndexer.paths
 
   return (

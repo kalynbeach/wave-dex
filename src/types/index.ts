@@ -1,5 +1,3 @@
-import type { PathLike } from 'fs'
-
 export interface IndexEntity {
   fileExtension: string
   id: string
@@ -22,7 +20,11 @@ export interface Index<T extends IndexEntity[]> {
 
 export interface IndexingStrategy<T extends IndexEntity> {
   fileExtension: string
-  index: (rootDirectory: PathLike) => Promise<T[]>
+  index: (rootDirectory: string) => Promise<T[]>
+}
+
+export interface IndexerStrategies<T extends IndexEntity> {
+  [key: string]: IndexingStrategy<T>
 }
 
 export interface Indexer<T extends IndexEntity[]> {
@@ -37,13 +39,15 @@ export interface Indexer<T extends IndexEntity[]> {
 
   index: Index<T> | null
 
-  strategies: IndexingStrategy<any>[]
+  // strategies: IndexingStrategy<any>[]
+  strategies: IndexerStrategies<IndexEntity>
 
+  // findIndexEntites: <T extends IndexEntity>(rootDirectory: PathLike) => Promise<T[]>
   createIndex: () => Promise<Index<T>>
   getIndex: () => Index<T>
   getIndexValue: (key: string) => Promise<IndexEntity[] | undefined>
   saveIndex: <T extends IndexEntity[]>(index: Index<T>) => Promise<void>
-  saveIndexJson: (path: string, output: any[]) => Promise<void> // TODO: Replace this any
+  saveIndexJson: (path: string, output: any[]) => Promise<void>
 }
 
 export interface IndexerDatabase {
