@@ -1,4 +1,4 @@
-export interface IndexEntity {
+export type IndexEntity = {
   fileExtension: string
   id: string
   name: string
@@ -7,7 +7,7 @@ export interface IndexEntity {
   }
 }
 
-export interface Index<T extends IndexEntity[]> {
+export type Index<T extends IndexEntity[]> = {
   id: string
   name: string
   version: string
