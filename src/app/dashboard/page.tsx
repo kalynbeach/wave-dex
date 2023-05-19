@@ -1,5 +1,5 @@
 import DashboardMain from './DashboardMain'
-import Settings from '@/components/Settings'
+import Settings from 'ui/Settings'
 
 export default function Dashboard() {
   return (

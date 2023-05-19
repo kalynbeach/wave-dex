@@ -1,5 +1,5 @@
 import { liveIndexer } from '@/lib/live/indexer'
-import IndexList from 'ui/IndexList'
+import IndexList from '@/app/indexes/IndexList'
 
 async function initIndex() {
   let index = liveIndexer.index

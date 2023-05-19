@@ -1,4 +1,4 @@
-import IndexList from 'ui/IndexList'
+import IndexList from '@/app/indexes/IndexList'
 
 export default function Indexes() {
   return (
